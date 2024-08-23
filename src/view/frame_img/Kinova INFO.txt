@@ -1,0 +1,9 @@
+WEBCAM-VIEW
+Kinova 1 com borda: [2576,1997], [927,2093], [879, 421], [2511,401]
+Kinova 1 sem borda: [2524,1949], [980, 3041], [932,475], [2461,454]
+WEBCAM-VIEW
+Kinova2 half-board: [1436,975],[540,994], [535,103], [148,97]
+
+02 AGOSTO
+resolução cv.2 3840x2160 medida no meio da borda
+Kinova 1[2766,2082], [760,2133], [746,123], [2720,142]
