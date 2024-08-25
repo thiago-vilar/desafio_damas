@@ -3,8 +3,8 @@ import numpy as np
 from PIL import Image, ImageDraw, ImageFont
 from sklearn.cluster import KMeans
 import datetime
+import os  # Importando o módulo os para manipulação de diretórios
 import matplotlib.colors as mcolors
-
 
 def get_color_name(rgb):
     min_dist = float('inf')
@@ -80,11 +80,9 @@ def analyze_and_save_image(image):
     font_size = 48 
     font = ImageFont.truetype("arial.ttf", font_size)
 
-  
     text = f"Resolution: {resolution[0]}x{resolution[1]}"
     draw.text((10, 10), text, font=font, fill=(0, 0, 0))
 
-   
     y_offset = 80
     box_size = 50  
     for color, percentage in zip(dominant_colors, percentages):
@@ -96,13 +94,16 @@ def analyze_and_save_image(image):
         draw.text((10 + box_size + 10, y_offset), color_text, font=font, fill=(0, 0, 0))
         y_offset += box_size + 20
         
-      
         print_colored_text(color.astype(int), color_text)
 
-  
+    # Criação do diretório se não existir
+    output_dir = 'src/view/frames'
+    if not os.path.exists(output_dir):
+        os.makedirs(output_dir)
+
     current_time = datetime.datetime.now().strftime("%Y%m%d%H%M%S")
-    image.save(f'src/view/frames/img_{current_time}.jpg')
-    print(f"Imagem salva em 'src/view/frames/img_{current_time}.jpg'")
+    image.save(os.path.join(output_dir, f'img_{current_time}.jpg'))
+    print(f"Imagem salva em '{os.path.join(output_dir, f'img_{current_time}.jpg')}'")
 
 def main():
     choice = input("Digite 'f' para analisar uma imagem de arquivo ou 'w' para usar a webcam: ")

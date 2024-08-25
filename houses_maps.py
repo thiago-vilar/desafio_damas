@@ -79,19 +79,19 @@ def main():
         path = input("Digite o caminho da imagem: ")
         img = cv2.imread(path)
         if img is not None:
-          
+            # 1. Detecta os ArUcos
             aruco_corners, ids = find_aruco_markers(img)
             if ids is not None and aruco_corners:
-           
+                # 2. Encontra os pontos closest mais próximos ao centro
                 closest_points = find_closest_point_to_center(img, aruco_corners)
                 
-             
+                # 3. Desenha o polígono delimitador
                 hull = draw_min_polygon(img, closest_points)
                 
                 if hull is not None:
-                
-                    img = draw_lines(img, closest_points) 
-                    img = add_labels(img, closest_points) 
+                    # 4. Desenha as linhas do tabuleiro e rotula as casas
+                    img = draw_lines(img, closest_points)  # Desenha as linhas do tabuleiro
+                    img = add_labels(img, closest_points)  # Adiciona as etiquetas (A1, B2, etc.)
             cv2.imshow('Frame', img)
             cv2.waitKey(0)
             cv2.destroyAllWindows()
