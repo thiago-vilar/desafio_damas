@@ -66,6 +66,7 @@ def detect_hough_lines(warped):
     edges = cv2.Canny(gray, 50, 150, apertureSize=3)
     lines = cv2.HoughLines(edges, 1, np.pi / 180, 150)
 
+    line_image = np.copy(warped)
     if lines is not None:
         for rho, theta in lines[:, 0]:
             a = np.cos(theta)
@@ -76,21 +77,28 @@ def detect_hough_lines(warped):
             y1 = int(y0 + 1000 * (a))
             x2 = int(x0 - 1000 * (-b))
             y2 = int(y0 - 1000 * (a))
-            cv2.line(warped, (x1, y1), (x2, y2), (0, 0, 0), 1)
-    return warped
+            cv2.line(line_image, (x1, y1), (x2, y2), (0, 0, 255), 2)
+    return line_image
 
 def draw_lines_and_labels(warped):
     """Draws the grid lines and labels on the warped image."""
-    text_color = (0, 0, 0) 
-    cell_size = 50  
+    line_color = (150, 0, 0)  # Line color for grid
+    text_color = (150, 0, 0)  # Text color for labels
+    cell_size = 50
 
+    # Draw vertical and horizontal lines
+    for i in range(1, 8):
+        cv2.line(warped, (0, i * cell_size), (400, i * cell_size), line_color, 1)
+        cv2.line(warped, (i * cell_size, 0), (i * cell_size, 400), line_color, 1)
+
+    # Add labels (A-H and 1-8)
     for i in range(8):
         for j in range(8):
-            if (i + j) % 2 == 1:  
+            if (i + j) % 2 == 1:  # Label only white squares
                 cell_label = chr(65 + j) + str(8 - i)
-                x_pos = j * cell_size + cell_size // 2 - 15  # Ajuste X
-                y_pos = i * cell_size + cell_size // 2 + 15  # Ajuste Y
-                cv2.putText(warped, cell_label, (x_pos, y_pos), cv2.FONT_HERSHEY_SIMPLEX, 0.8, text_color, 2)
+                x_pos = j * cell_size + cell_size // 2 - 10
+                y_pos = i * cell_size + cell_size // 2 + 10
+                cv2.putText(warped, cell_label, (x_pos, y_pos), cv2.FONT_HERSHEY_SIMPLEX, 0.5, text_color, 1)
 
     return warped
 
@@ -110,11 +118,11 @@ def main():
                 if labeled_points is not None:
                     # 4. Aplicar transformação de perspectiva
                     warped, matrix = apply_perspective_transform(img, labeled_points)
-                    # 5. Detectar e desenhar linhas de Hough
-                    hough_image = detect_hough_lines(warped)
-                    # 6. Desenhar linhas do tabuleiro e rótulos nas casas brancas
-                    final_image = draw_lines_and_labels(hough_image)
-                    cv2.imshow('Warped Frame with Hough Lines and Labels', final_image)
+                    # 5. Detectar linhas usando Hough Transform
+                    line_image = detect_hough_lines(warped)
+                    # 6. Desenhar linhas e rótulos no tabuleiro
+                    final_image = draw_lines_and_labels(line_image)
+                    cv2.imshow('Warped Frame with Hough Lines', final_image)
                     cv2.waitKey(0)
                     cv2.destroyAllWindows()
         else:
