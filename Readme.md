@@ -10,6 +10,11 @@ Neste projeto serão desenvolvidas técnicas de visão computacional clássica b
 5 - desenho de linhas(labels) usando a função de houges
 6 - rotular casas brancas
 
+cv2. getcreateTrackbar("L-H", "Trackbars", 0, 255, nothing)
+l_h = cv2.getTrackbarPos("L-H", Trackbars")
+
+
+
 a. Identificar Tag.
 i. Cada Tag deverá conter a “posição” dela no mapa
 1. Tag1 -> (0, 0)
