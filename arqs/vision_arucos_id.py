@@ -88,8 +88,8 @@ def draw_lines_and_labels(warped):
         for j in range(8):
             if (i + j) % 2 == 1:  
                 cell_label = chr(65 + j) + str(8 - i)
-                x_pos = j * cell_size + cell_size // 2 - 15  # Ajuste X
-                y_pos = i * cell_size + cell_size // 2 + 15  # Ajuste Y
+                x_pos = j * cell_size + cell_size // 2 - 15  
+                y_pos = i * cell_size + cell_size // 2 + 15  
                 cv2.putText(warped, cell_label, (x_pos, y_pos), cv2.FONT_HERSHEY_SIMPLEX, 0.8, text_color, 2)
 
     return warped
