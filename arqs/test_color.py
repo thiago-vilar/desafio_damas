@@ -78,12 +78,12 @@ def main():
                     contrast_points = detect_contrast_points(img, mask)
                     display_checkersboard_features(img, contrast_points)
                     
-                    # Detect and draw additional corners after the polygon is drawn
+           
                     extra_corners = detect_corners(img)
                     if extra_corners is not None:
                         for corner in extra_corners:
                             x, y = corner.ravel()
-                            cv2.circle(img, (x, y), 5, (255, 0, 0), -1)  # Draw the corners in red
+                            cv2.circle(img, (x, y), 5, (255, 0, 0), -1) 
                     
             cv2.imshow('Frame', img)
             cv2.waitKey(0)

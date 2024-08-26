@@ -29,7 +29,7 @@ def main():
             print("Imagem não encontrada. Verifique o caminho fornecido.")
     
     elif choice == '2':
-        cap = cv2.VideoCapture(0)  # Ajuste para o índice correto da sua câmera
+        cap = cv2.VideoCapture(0) 
 
         while True:
             ret, frame = cap.read()
