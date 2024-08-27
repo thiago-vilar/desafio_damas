@@ -8,7 +8,6 @@ def find_aruco_markers(img, dictionary_type=aruco.DICT_ARUCO_ORIGINAL, draw=True
     aruco_dict = aruco.getPredefinedDictionary(dictionary_type)
     aruco_params = aruco.DetectorParameters()
     corners, ids, rejected = aruco.detectMarkers(gray, aruco_dict, parameters=aruco_params)
-    
     if draw and ids is not None:
         aruco.drawDetectedMarkers(img, corners, ids)
     return corners, ids
@@ -29,10 +28,10 @@ def find_closest_point_to_center(img, corners):
 def associate_points_with_ids(closest_points, ids, img):
     """3. Associates closest points with ArUco IDs to ensure board orientation and labels them."""
     labeled_points = {}
-    id_map = {474: 'P1', 553: 'P2', 424: 'P3', 224: 'P4'}
-    reference_map = {474: (0, 0), 553: (1, 0), 424: (1, 1), 224: (0, 1)}
+    id_map = {169: 'P1', 302: 'P2', 876: 'P3', 1001: 'P4'}
+    reference_map = {169: (0, 0), 302: (1, 0), 876: (1, 1), 1001: (0, 1)}
 
-    required_ids = {474, 553, 424, 224}
+    required_ids = {169, 302, 876, 1001}
     if not required_ids.issubset(set(ids.flatten())):
         print("Erro: Nem todos os ArUcos necessários foram encontrados.")
         return None
@@ -81,9 +80,9 @@ def detect_hough_lines(warped):
 
 def draw_lines_and_labels(warped):
     """Draws the grid lines and labels on the warped image."""
-    text_color = (0, 0, 0) 
-    cell_size = 50  
-
+    text_color = (100, 100, 100) 
+    cell_size = 50 
+    
     for i in range(8):
         for j in range(8):
             if (i + j) % 2 == 1:  

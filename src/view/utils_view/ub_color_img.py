@@ -3,7 +3,7 @@ import numpy as np
 from PIL import Image, ImageDraw, ImageFont
 from sklearn.cluster import KMeans
 import datetime
-import os  # Importando o módulo os para manipulação de diretórios
+import os  
 import matplotlib.colors as mcolors
 
 def get_color_name(rgb):

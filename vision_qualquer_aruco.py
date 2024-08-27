@@ -1,3 +1,4 @@
+
 import cv2
 import numpy as np
 from cv2 import aruco
@@ -24,6 +25,11 @@ def find_closest_point_to_center(img, corners):
             closest_points.append(closest_point)
             cv2.circle(img, tuple(closest_point.astype(int)), 4, (0, 255, 0), -1)
     return np.array(closest_points)
+
+def draw_min_polygon(img, points):
+    if len(points) > 2:
+        hull = cv2.convexHull(np.array(points, dtype=np.float32))
+        cv2.polylines(img, [np.int32(hull)], True, (0, 255,0), 2) 
 
 def associate_points_with_ids(corners, ids):
     """Associates corners with predefined board positions based on ArUco IDs."""
