@@ -5,13 +5,16 @@ import numpy as np
 def find_aruco_markers(img, dictionary_type=aruco.DICT_ARUCO_ORIGINAL, draw=True):
     gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
     aruco_dict = aruco.getPredefinedDictionary(dictionary_type)
-    aruco_params = aruco.DetectorParameters() 
+    aruco_params = aruco.DetectorParameters()
     corners, ids, rejected = aruco.detectMarkers(gray, aruco_dict, parameters=aruco_params)
     
     if draw and ids is not None:
         aruco.drawDetectedMarkers(img, corners, ids)
     
     return corners, ids
+
+def resize_image(img, scale=0.75):
+    return cv2.resize(img, (0,0), fx=scale, fy=scale)
 
 def main():
     print("Digite a opção:\n 1 - Imagem\n 2 - Vídeo")
@@ -21,6 +24,7 @@ def main():
         path = input("Digite o caminho da imagem: ")
         img = cv2.imread(path)
         if img is not None:
+            img = resize_image(img)
             corners, ids = find_aruco_markers(img)
             cv2.imshow("ArUco Markers", img)
             cv2.waitKey(0)
@@ -34,6 +38,7 @@ def main():
         while True:
             ret, frame = cap.read()
             if ret:
+                frame = resize_image(frame)
                 corners, ids = find_aruco_markers(frame)
                 cv2.imshow("ArUco Markers", frame)
                 if cv2.waitKey(1) & 0xFF == ord('q'):
