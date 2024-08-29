@@ -92,6 +92,52 @@ def draw_lines_and_labels(warped):
                 cv2.putText(warped, cell_label, (x_pos, y_pos), cv2.FONT_HERSHEY_SIMPLEX, 0.8, text_color, 2)
 
     return warped
+def detect_colored_objects(image_path, green_thresholds, purple_thresholds, min_distance):
+
+    image = cv2.imread(image_path)
+    if image is None:
+        print("Erro: Não foi possível abrir a imagem.")
+        return
+
+    image = cv2.resize(image, None, fx=0.5, fy=0.5, interpolation=cv2.INTER_LINEAR)
+
+    hsv = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
+
+    hsv = cv2.GaussianBlur(hsv, (3, 3), 0)
+
+    lower_green = np.array(green_thresholds[0], dtype="uint8")
+    upper_green = np.array(green_thresholds[1], dtype="uint8")
+    lower_purple = np.array(purple_thresholds[0], dtype="uint8")
+    upper_purple = np.array(purple_thresholds[1], dtype="uint8")
+
+    green_mask = cv2.inRange(hsv, lower_green, upper_green)
+    purple_mask = cv2.inRange(hsv, lower_purple, upper_purple)
+
+    green_contours, _ = cv2.findContours(green_mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+    purple_contours, _ = cv2.findContours(purple_mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+
+
+    def draw_contours(contours, color):
+        centers = []
+        for contour in contours:
+            M = cv2.moments(contour)
+            if M["m00"] != 0:
+                cx = int(M["m10"] / M["m00"])
+                cy = int(M["m01"] / M["m00"])
+                point = np.array([cx, cy])
+
+                if all(np.linalg.norm(point - np.array(center)) > min_distance for center in centers):
+                    centers.append(point)
+                    cv2.circle(image, (cx, cy), 10, color, -1)
+
+    draw_contours(green_contours, (0, 255, 0))
+    draw_contours(purple_contours, (128, 0, 128))
+
+
+green_thresholds = ([85, 197, 31], [120, 255, 255])  
+purple_thresholds = ([116, 92, 60], [211, 187, 183])  
+min_distance = 50  
+
 
 def main():
     choice = input("Digite a opção:\n 1 - Imagem\n 2 - Vídeo\n 3 - Webcam Realtime\n")
