@@ -23,23 +23,24 @@ iii. Qual foi o jogador que fez o movimento
 iv. Alguma peça foi executada?
 g. Definir qual jogador ganhou ao fim do vídeo
 
-ESTRATÉGIA DE CODIFICAÇÃO:
 REVISADO 28/08/24
+ESTRATÉGIA DE CODIFICAÇÃO:
 
 Cirar uma classe estruturada UpdateBoard
 
     1. Achar arucos;
     2. Na área dos arucos achar pontos internos(closets) mais proximos ao centro da imagem;
     3. Desenhar o mínimo polígono com base nos 4 arucos(mapa da borda do tabuleiro):
-        - Garantir a ordem dos pontos para mapeamento corretos(P1, P2, P3, P4) com mesma distância euclidiana para formar o quadrado do tabuleiro, contudo evitar mapeamento invertido, 'dobrado' (ex. P1, P3, P2, P4);
+        - Garantir a ordem dos pontos para mapeamento corretos(P1, P2, P3, P4) com mesma distância euclidiana para formar o quadrado do tabuleiro, contudo evitar mapeamento invertido, 'dobrado' (ex. P1, P3, P2, P4); OBS: tomar como base o posicionamento dos pixels na imaem
     4. Associar pontos aos ids para criar sistema de coordenadas:
-        - Verificar se é possível fazer funcionar com arucos pré-setados ou não;
     5. Detectar as linhas de hough dentro da área do tabuleiro;
-    6. Aplicar transformação de perspectiva;
-    7. Desenho do tabuleiro:
+    6. Detectar peças verdes e roxas usando limiar threshold;
+    7. Aplicar transformação de perspectiva;
+    8. Desenho do tabuleiro:
         - Rotular casas brancas do tabuleiro
         - Verificar se imagem real ou ilustração na função  opencv imshow;
-    8. Detectar cores das damas verde e roxa usando limiar threshold;
-    9. Retorno da matriz numpy
-        - Retornar no terminal e na tela da função opencv imshow
+    9. Retorno da matriz numpy no terminal CLI
+        - Retornar da função opencv imshow
+
+    PROGRAMA PRINCIPAL, ACEITAR ENTRADAS DE IMAGEM, VÍDEO E WEBCAM REALTIME
 

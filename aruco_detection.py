@@ -1,6 +1,7 @@
 import cv2
 from cv2 import aruco
 import numpy as np
+import datetime
 
 def find_aruco_markers(img, dictionary_type=aruco.DICT_ARUCO_ORIGINAL, draw=True):
     gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
@@ -13,8 +14,14 @@ def find_aruco_markers(img, dictionary_type=aruco.DICT_ARUCO_ORIGINAL, draw=True
     
     return corners, ids
 
-def resize_image(img, scale=0.75):
+def resize_image(img, scale=0.7):  
     return cv2.resize(img, (0,0), fx=scale, fy=scale)
+
+def save_image(img, folder='img'):
+    timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+    filename = f"{folder}/img_{timestamp}.jpg"
+    cv2.imwrite(filename, img)
+    print(f"Image saved as {filename}")
 
 def main():
     print("Digite a opção:\n 1 - Imagem\n 2 - Vídeo")
@@ -29,6 +36,7 @@ def main():
             cv2.imshow("ArUco Markers", img)
             cv2.waitKey(0)
             cv2.destroyAllWindows()
+            save_image(img)  
         else:
             print("Imagem não encontrada. Verifique o caminho fornecido.")
     
