@@ -38,7 +38,7 @@ def main():
         print("Erro: Não foi possível abrir a imagem. Verifique se o caminho está correto.")
         return
 
-    resize_factor = 0.8
+    resize_factor = 0.4
     trackbar_window = 'Color Detectors'
     image = cv2.resize(image, None, fx=resize_factor, fy=resize_factor)
     cv2.namedWindow(trackbar_window)

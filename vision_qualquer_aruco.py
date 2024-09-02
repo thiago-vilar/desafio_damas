@@ -34,10 +34,11 @@ def draw_min_polygon(img, points):
 def associate_points_with_ids(corners, ids):
     """Associates corners with predefined board positions based on ArUco IDs."""
     position_map = {
-        1: (0, 0),   # ID 1 (0, 0)
+        1: (0, 0),  # ID 1 (0, 0)
         2: (800, 0), # ID 2 (X, 0)
-        3: (800, 800), # ID 3 (X, Y)
-        4: (0, 800)  # ID 4  (0, Y)
+        3: (0, 800), # ID 3 (X, Y)
+        4: (800, 800), # ID 4  (0, Y)
+       
     }
     src_points = np.zeros((4, 2), dtype=np.float32)
     for i, id in enumerate(ids.flatten()):

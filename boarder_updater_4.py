@@ -144,12 +144,13 @@ def check_for_winner(board):
 
 def main():
     aruco_id_map = {
-        169: {'label': 'P1', 'position': (0, 0)},
-        302: {'label': 'P2', 'position': (1, 0)},
-        876: {'label': 'P3', 'position': (1, 1)},
-        1001: {'label': 'P4', 'position': (0, 1)}
+          2: {'label': 'P1', 'position': (0, 0)},
+         10: {'label': 'P2', 'position': (1, 0)},
+         11: {'label': 'P3', 'position': (1, 1)},
+         12: {'label': 'P4', 'position': (0, 1)}
     }
-    green_thresholds = ([85, 197, 31], [120, 255, 255])
+    
+    green_thresholds = ([92, 55, 116], [106, 59, 150])
     purple_thresholds = ([116, 92, 60], [211, 187, 183])
     min_distance = 60
 

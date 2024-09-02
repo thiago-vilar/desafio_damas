@@ -146,21 +146,49 @@ def check_for_winner(board):
 
 def main():
     aruco_id_map = {
-        169: {'label': 'P1', 'position': (0, 0)},
-        302: {'label': 'P2', 'position': (1, 0)},
-        876: {'label': 'P3', 'position': (1, 1)},
-        1001: {'label': 'P4', 'position': (0, 1)}
+          2: {'label': 'P1', 'position': (0, 0)},
+         10: {'label': 'P2', 'position': (1, 0)},
+         11: {'label': 'P3', 'position': (1, 1)},
+         12: {'label': 'P4', 'position': (0, 1)}
     }
-    green_thresholds = ([85, 197, 31], [120, 255, 255])
+    green_thresholds = ([92, 55, 116], [106, 59, 150])
     purple_thresholds = ([116, 92, 60], [211, 187, 183])
     min_distance = 60
-
+   
     detector = ArucoDetector(id_map=aruco_id_map)
     transformer = PerspectiveTransformer()
     object_line_detector = ObjectAndLineDetector(green_thresholds, purple_thresholds, min_distance)
 
     choice = input("Digite a opção:\n1 - Imagem\n2 - Vídeo\n3 - Webcam Realtime\n")
-    if choice == '2':
+    if choice == '1':
+        path = input("Digite o caminho da imagem: ")
+        img = cv2.imread(path)
+        if img is None:
+            print("Erro ao abrir a imagem.")
+            return
+
+        corners, ids = detector.find_aruco_markers(img)
+        if ids is not None and corners:
+            closest_points = detector.find_closest_point_to_center(img, corners)
+            labeled_points = detector.associate_points_with_ids(closest_points, ids, img)
+            if labeled_points is not None:
+                warped = transformer.apply_transform(img, labeled_points)
+                green_centers, purple_centers = object_line_detector.detect_colored_objects(warped)
+                final_image = draw_lines_and_labels(warped)
+                current_board = detect_board_status(final_image, green_centers, purple_centers)
+
+                print("Current Board State:")
+                print(current_board) 
+
+                cv2.imshow('Processed Image', final_image)
+                cv2.waitKey(0)
+            else:
+                print("Erro ao associar os pontos com os IDs.")
+        else:
+            print("Marcadores ArUco não encontrados.")
+        cv2.destroyAllWindows()
+
+    elif choice == '2':
         path = input("Digite o caminho do vídeo: ")
         cap = cv2.VideoCapture(path)
         if not cap.isOpened():
@@ -185,13 +213,16 @@ def main():
                         detect_move(previous_board, current_board)
                         check_for_winner(current_board)
 
+                    print("Current Board State:")
+                    print(current_board) 
+
                     previous_board = current_board
 
                     cv2.imshow('Processed Image', final_image)
                     if cv2.waitKey(1) & 0xFF == ord('q'):
                         break
 
-                    time.sleep(15)
+                    time.sleep(5)
                 else:
                     print("Erro ao associar os pontos com os IDs.")
             else:
@@ -202,5 +233,53 @@ def main():
         cap.release()
         cv2.destroyAllWindows()
 
+    elif choice == '3':
+        cap = cv2.VideoCapture(0)
+        if not cap.isOpened():
+            print("Erro ao abrir a webcam.")
+            return
+
+        previous_board = None
+
+        while True:
+            ret, frame = cap.read()
+            if not ret:
+                print("Erro ao capturar imagem da webcam.")
+                break
+
+            corners, ids = detector.find_aruco_markers(frame)
+            if ids is not None and corners:
+                closest_points = detector.find_closest_point_to_center(frame, corners)
+                labeled_points = detector.associate_points_with_ids(closest_points, ids, frame)
+                if labeled_points is not None:
+                    warped = transformer.apply_transform(frame, labeled_points)
+                    green_centers, purple_centers = object_line_detector.detect_colored_objects(warped)
+                    final_image = draw_lines_and_labels(warped)
+                    current_board = detect_board_status(final_image, green_centers, purple_centers)
+
+                    if previous_board is not None:
+                        detect_move(previous_board, current_board)
+                        check_for_winner(current_board)
+
+                    print("Current Board State:")
+                    print(current_board) 
+
+                    previous_board = current_board
+
+                    cv2.imshow('Processed Image', final_image)
+                    if cv2.waitKey(1) & 0xFF == ord('q'):
+                        break
+
+                    time.sleep(5)
+                else:
+                    print("Erro ao associar os pontos com os IDs.")
+            else:
+                print("Marcadores ArUco não encontrados.")
+
+        cap.release()
+        cv2.destroyAllWindows()
+
 if __name__ == "__main__":
     main()
+
+  
