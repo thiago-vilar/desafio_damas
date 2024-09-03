@@ -2,7 +2,7 @@ import os
 import cv2
 
 def capture_image(save_path, width, height):
-    cap = cv2.VideoCapture(0, cv2.CAP_DSHOW)
+    cap = cv2.VideoCapture(1, cv2.CAP_DSHOW)
     if not cap.isOpened():
         raise Exception("Falha no acesso à câmera")
 
