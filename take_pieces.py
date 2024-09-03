@@ -47,9 +47,9 @@ def detect_colored_objects(image_path, green_thresholds, purple_thresholds, min_
     cv2.destroyAllWindows()
 
 
-green_thresholds = ([32, 144, 0], [94, 255, 255])  
-purple_thresholds = ([121, 78, 0], [255, 255, 255])  
-min_distance = 50  
+green_thresholds = ([88, 191, 104], [135, 255, 187])  
+purple_thresholds = ([118, 100, 66], [255, 251, 255])  
+min_distance = 30  
 
 image_path = input("Digite o caminho do arquivo da imagem: ")
 detect_colored_objects(image_path, green_thresholds, purple_thresholds, min_distance)

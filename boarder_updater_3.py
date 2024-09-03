@@ -151,9 +151,9 @@ def main():
          11: {'label': 'P3', 'position': (1, 1)},
          12: {'label': 'P4', 'position': (0, 1)}
     }
-    green_thresholds = ([92, 55, 116], [106, 59, 150])
-    purple_thresholds = ([116, 92, 60], [211, 187, 183])
-    min_distance = 60
+    green_thresholds = ([88, 191, 104], [135, 255, 187])  
+    purple_thresholds = ([118, 100, 66], [255, 251, 255])  
+    min_distance = 30  
    
     detector = ArucoDetector(id_map=aruco_id_map)
     transformer = PerspectiveTransformer()
