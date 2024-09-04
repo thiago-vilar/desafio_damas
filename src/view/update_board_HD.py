@@ -85,7 +85,7 @@ class UpdateBoard:
         }
         for (x1, y1, x2, y2, conf, cls_id) in detections:
             label = self.model.names[cls_id]
-            # print(f"Rótulo: {label}, Confiança: {conf:.2f}")
+            print(f"Rótulo: {label}, Confiança: {conf:.2f}")
             color = color_map.get(label, (255, 255, 255))
             cv2.rectangle(image, (x1, y1), (x2, y2), color, 2)
             cv2.putText(image, f"{label} {conf:.2f}", (x1, y1 - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, color, 1)
@@ -97,7 +97,7 @@ class UpdateBoard:
         for i in range(1, 8):
             cv2.line(image, (0, i * height // 8), (width, i * height // 8), line_color, 1)
             cv2.line(image, (i * width // 8, 0), (i * width // 8, height), line_color, 1)
-        # print("Linhas desenhadas na imagem")
+        print("Linhas desenhadas na imagem")
         return image
 
     def add_labels(self, image):
@@ -110,7 +110,7 @@ class UpdateBoard:
                 x_pos = j * width // 8 + 10
                 y_pos = i * height // 8 + 20
                 cv2.putText(image, cell_label, (x_pos, y_pos), cv2.FONT_HERSHEY_SIMPLEX, 0.5, text_color, 1)
-        # print("Rótulos adicionados apenas em casas brancas")
+        print("Rótulos adicionados apenas em casas brancas")
         return image
     
     def apply_homography(image, matrix):
@@ -122,7 +122,7 @@ class UpdateBoard:
         dst = np.array([[0, 0], [width - 1, 0], [width - 1, height - 1], [0, height - 1]], dtype="float32")
         M = cv2.getPerspectiveTransform(points, dst)
         mapped = cv2.warpPerspective(image, M, (width, height))
-        # print("Imagem mapeada e redimensionada para 2000x2000")
+        print("Imagem mapeada e redimensionada para 2000x2000")
         return mapped
 
 
