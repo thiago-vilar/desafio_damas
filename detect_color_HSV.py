@@ -75,7 +75,7 @@ def main():
 
         k = cv2.waitKey(1) & 0xFF
         if k == ord('c'):
-            thresholds = f"Low: {lower_color.tolist()}, High: {upper_color.tolist()}"
+            thresholds = f"Low and High: {lower_color.tolist()}, {upper_color.tolist()}"
             pyperclip.copy(thresholds)
             print("Thresholds copied to clipboard:", thresholds)
         elif k == 27:  

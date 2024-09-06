@@ -1,0 +1,6 @@
+06/9
+1. pegar os tabuleiros retornados e impressos no terminal(current_board) retirar uma média de status e imprimir no terminal uma média referente tempo de leitura solicitado em:
+  current_time = time.time()
+            if current_time - last_update_time >= 3:
+                process_frame(frame, detector, transformer, object_line_detector, previous_board)
+                last_update_time = current_time

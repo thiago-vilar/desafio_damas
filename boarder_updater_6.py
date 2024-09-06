@@ -126,15 +126,39 @@ def compare_boards(board1, board2):
     return differences
 
 def detect_move(previous_board, current_board):
+    """ Detecta movimentos e capturas, imprimindo detalhes de cada jogada. """
     differences = compare_boards(previous_board, current_board)
+    PLAYER_GREEN = 1
+    PLAYER_PURPLE = 2
+    color_to_player = {
+    '🟢': PLAYER_GREEN,
+    '🟣': PLAYER_PURPLE
+    }
+    move_made = False
     for diff in differences:
         i, j, prev, curr = diff
         if prev == '⬛' and curr in ['🟢', '🟣']:
-            print(f"Movimento detectado: Peça {curr} movida para {chr(65 + j)}{8 - i}")
+            print(f"Movimento detectado: Jogador {color_to_player[curr]} moveu a peça {curr} para {chr(65 + j)}{8 - i}")
+            move_made = True
         elif curr == '⬛' and prev in ['🟢', '🟣']:
-            print(f"Peça {prev} capturada de {chr(65 + j)}{8 - i}")
-        elif prev in ['🟢', '🟣'] and curr in ['🟢', '🟣']:
-            print(f"Peça {prev} movida de {chr(65 + j)}{8 - i} para {chr(65 + j)}{8 - i}")
+            print(f"Peça {prev} do Jogador {color_to_player[prev]} capturada de {chr(65 + j)}{8 - i}")
+            move_made = True
+        elif prev in ['🟢', '🟣'] and curr in ['🟢', '🟣'] and prev != curr:
+            print(f"Peça {prev} do Jogador {color_to_player[prev]} movida e substituída por {curr} do Jogador {color_to_player[curr]} em {chr(65 + j)}{8 - i}")
+            move_made = True
+    if not move_made:
+        print("Nenhuma jogada detectada neste frame.")
+
+def detect_winner(board):
+    """ Verifica o estado atual do tabuleiro para declarar um vencedor, se aplicável. """
+    green_count = sum(piece == '🟢' for row in board for piece in row)
+    purple_count = sum(piece == '🟣' for row in board for piece in row)
+    if green_count == 0:
+        print("Jogador PURPLE venceu!")
+    elif purple_count == 0:
+        print("Jogador GREEN venceu!")
+    else:
+        print(f"Estado do jogo - Verde: {green_count}, Roxo: {purple_count}")
 
 def process_frame(frame, detector, transformer, object_line_detector, previous_board):
     corners, ids = detector.find_aruco_markers(frame)
@@ -170,7 +194,7 @@ def main():
          12: {'label': 'P4', 'position': (0, 1)}
     }
 
-    green_thresholds = ([88, 191, 104], [135, 255, 187])  
+    green_thresholds = ([88, 180, 104], [135, 255, 187])  
     purple_thresholds = ([118, 100, 66], [255, 251, 255])  
     min_distance = 50  
    
@@ -196,7 +220,8 @@ def main():
                 final_image = draw_lines_and_labels(warped)
                 current_board = detect_board_status(final_image, green_centers, purple_centers)
                 print("Current Board State:")
-                print(current_board) 
+                print(current_board)
+                print()
                 cv2.imshow('Processed Image', final_image)
                 cv2.waitKey(0)
             else:
@@ -209,16 +234,7 @@ def main():
     elif choice == '2':
         path = input("Digite o caminho do vídeo: ")
         cap = cv2.VideoCapture(path)
-        # cap.set(cv2.CAP_PROP_POS_FRAMES, frame-1) #fase de teste
-        # ret, frame = cap.read()#fase de teste
 
-        # testando taxa de frame/s
-        time_length = 173.0
-        fps=25
-        frame_seq = 5207.0
-        frame_no = (frame_seq /(time_length*fps))
-        cap.set(2,frame_no)  
-        
         if not cap.isOpened():
             print("Erro ao abrir o vídeo.")
             return
@@ -235,13 +251,9 @@ def main():
                 break
 
             current_time = time.time()
-            if current_time - last_update_time >= 0:
+            if current_time - last_update_time >= 3:
                 process_frame(frame, detector, transformer, object_line_detector, previous_board)
                 last_update_time = current_time
-
-
-            amount_of_frames = cap.get(cv2.CAP_PROP_FRAME_COUNT)
-            print(amount_of_frames)
 
             if cv2.waitKey(1) & 0xFF == ord('q'):
                 break
