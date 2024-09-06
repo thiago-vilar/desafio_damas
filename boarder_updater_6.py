@@ -221,7 +221,7 @@ def main():
                 current_board = detect_board_status(final_image, green_centers, purple_centers)
                 print("Current Board State:")
                 print(current_board)
-                print()
+                print(detect_move.differences)
                 cv2.imshow('Processed Image', final_image)
                 cv2.waitKey(0)
             else:
