@@ -48,14 +48,12 @@ class ArucoDetector:
             return None
         return np.array(ordered_points)
 
-
 class PerspectiveTransformer:
     def apply_transform(self, img, src_points):
         dst_points = np.array([[0, 0], [480, 0], [480, 480], [0, 480]], dtype='float32')
         matrix = cv2.getPerspectiveTransform(src_points.astype('float32'), dst_points)
         warped = cv2.warpPerspective(img, matrix, (480, 480))
         return warped
-
 
 class ObjectAndLineDetector:
     def __init__(self, green_thresholds, purple_thresholds, min_distance):
@@ -85,10 +83,10 @@ class ObjectAndLineDetector:
                 point = np.array([cx, cy])
                 if all(np.linalg.norm(point - np.array(center)) > self.min_distance for center in centers):
                     centers.append(point)
-                    cv2.circle(img, (cx, cy), 20, color, -1)
+                    # Desenho de círculo nas peças detectadas
+                    cv2.circle(img, (cx, cy), 12, color, 2)
         return centers
-
-
+    
 def draw_lines_and_labels(warped):
     text_color = (0, 0, 0)
     cell_size = 60
@@ -101,12 +99,10 @@ def draw_lines_and_labels(warped):
                 cv2.putText(warped, cell_label, (x_pos, y_pos), cv2.FONT_HERSHEY_SIMPLEX, 0.5, text_color, 1)
     return warped
 
-
 def detect_board_status(warped, green_centers, purple_centers):
     board = np.full((8, 8), '⬜', dtype=object)
     cell_size = 60
     emoji_map = {1: '🟢', 2: '🟣'}
-
     for i in range(8):
         for j in range(8):
             if (i + j) % 2 == 1:
@@ -120,42 +116,49 @@ def detect_board_status(warped, green_centers, purple_centers):
                         board[i, j] = emoji_map[2]
             else:
                 board[i, j] = '⬛'
-    
     return board
 
-
-def compare_boards(board1, board2):
-    """ Compara dois tabuleiros e retorna as diferenças. """
-    differences = []
+def calculate_average_board(board_accumulator):
+    final_board = np.full((8, 8), '⬜', dtype=object)
     for i in range(8):
         for j in range(8):
-            if board1[i, j] != board2[i, j]:
-                differences.append((i, j, board1[i, j], board2[i, j]))
-    return differences
+            cell_votes = [board[i][j] for board in board_accumulator if board[i][j] in ['🟢', '🟣']]
+            if cell_votes:
+                final_board[i, j] = max(set(cell_votes), key=cell_votes.count)
+            else:
+                final_board[i, j] = '⬛' if (i + j) % 2 == 1 else '⬜'
+    return final_board
 
+def process_frame(frame, detector, transformer, object_line_detector, previous_board, board_accumulator):
+    corners, ids = detector.find_aruco_markers(frame)
+    if ids is not None and corners:
+        closest_points = detector.find_closest_point_to_center(frame, corners)
+        labeled_points = detector.associate_points_with_ids(closest_points, ids, frame)
+        if labeled_points is not None:
+            warped = transformer.apply_transform(frame, labeled_points)
+            green_centers, purple_centers = object_line_detector.detect_colored_objects(warped)
+            current_board = detect_board_status(warped, green_centers, purple_centers)
+            board_accumulator.append(current_board)
 
-def detect_move(previous_board, current_board):
-    differences = compare_boards(previous_board, current_board)
-    PLAYER_GREEN = 1
-    PLAYER_PURPLE = 2
-    color_to_player = {'🟢': PLAYER_GREEN, '🟣': PLAYER_PURPLE}
-    move_made = False
-    for diff in differences:
-        i, j, prev, curr = diff
-        if prev == '⬛' and curr in ['🟢', '🟣']:
-            print(f"Movimento detectado: Jogador {color_to_player[curr]} moveu a peça {curr} para {chr(65 + j)}{8 - i}")
-            move_made = True
-        elif curr == '⬛' and prev in ['🟢', '🟣']:
-            print(f"Peça {prev} do Jogador {color_to_player[prev]} capturada de {chr(65 + j)}{8 - i}")
-            move_made = True
-        elif prev in ['🟢', '🟣'] and curr in ['🟢', '🟣'] and prev != curr:
-            print(f"Peça {prev} do Jogador {color_to_player[prev]} movida e substituída por {curr} do Jogador {color_to_player[curr]} em {chr(65 + j)}{8 - i}")
-            move_made = True
-    # if not move_made:
-    #     # print("Nenhuma jogada detectada neste frame.")
+            # Calcula a média dos frames a cada 'x' acumulações
+            if len(board_accumulator) >= 50:
+                average_board = calculate_average_board(board_accumulator)
+                board_accumulator.clear()
 
+                if previous_board is not None:
+                    move_made = detect_move(previous_board, average_board)
+                    if move_made:
+                        print("Tabuleiro atualizado:")
+                        print(average_board)
+                        previous_board = average_board
+                else:
+                    print("Tabuleiro inicial:")
+                    print(average_board)
+                    previous_board = average_board
 
-def process_frame(frame, detector, transformer, object_line_detector, previous_board):
+    return frame, previous_board
+
+def board_frame(frame, detector, transformer, object_line_detector, previous_board):
     corners, ids = detector.find_aruco_markers(frame)
     if ids is not None and corners:
         closest_points = detector.find_closest_point_to_center(frame, corners)
@@ -175,53 +178,46 @@ def process_frame(frame, detector, transformer, object_line_detector, previous_b
             return frame, previous_board
     return frame, previous_board
 
+def detect_move(previous_board, current_board):
+    differences = compare_boards(previous_board, current_board)
+    move_made = False
+    for diff in differences:
+        i, j, prev, curr = diff
+        if prev == '⬛' and curr in ['🟢', '🟣']:
+            print(f"Peça {curr} movida para {chr(65 + j)}{8 - i}")
+            move_made = True
+        elif curr == '⬛' and prev in ['🟢', '🟣']:
+            print(f"Peça {prev} capturada de {chr(65 + j)}{8 - i}")
+            move_made = True
+    return move_made
 
-def calculate_average_board(board_accumulator):
-    """ Função para calcular a média dos tabuleiros acumulados """
-    final_board = np.full((8, 8), '⬜', dtype=object)
-
+def compare_boards(board1, board2):
+    differences = []
     for i in range(8):
         for j in range(8):
-            cell_votes = [board[i][j] for board in board_accumulator if board[i][j] in ['🟢', '🟣']]
-            if cell_votes:
-                final_board[i, j] = max(set(cell_votes), key=cell_votes.count)  
-            else:
-                final_board[i, j] = '⬛' if (i + j) % 2 == 1 else '⬜'
-
-    return final_board
-
-
-def update_accumulated_board(detector, transformer, object_line_detector, frame, board_accumulator):
-    """ Função para acumular estados dos tabuleiros a cada frame """
-    corners, ids = detector.find_aruco_markers(frame)
-    if ids is not None and corners:
-        closest_points = detector.find_closest_point_to_center(frame, corners)
-        labeled_points = detector.associate_points_with_ids(closest_points, ids, frame)
-        if labeled_points is not None:
-            warped = transformer.apply_transform(frame, labeled_points)
-            green_centers, purple_centers = object_line_detector.detect_colored_objects(warped)
-            current_board = detect_board_status(warped, green_centers, purple_centers)
-            board_accumulator.append(current_board)
-
+            if board1[i, j] != board2[i, j]:
+                differences.append((i, j, board1[i, j], board2[i, j]))
+    return differences
 
 def main():
     aruco_id_map = {
-        # Define as posições dos ArUcos
-         2: {'label': 'P1', 'position': (0, 0)},  # canto superior-esquerdo (próximo ao A8)
-        10: {'label': 'P2', 'position': (1, 0)},  # canto superior-direito (próximo ao H8)
-        11: {'label': 'P3', 'position': (1, 1)},  # canto inferior-esquerdo (próximo ao A1)
-        12: {'label': 'P4', 'position': (0, 1)},  # canto inferior direito (próximo ao H1)
+        2: {'label': 'P1', 'position': (0, 0)},
+        10: {'label': 'P2', 'position': (1, 0)},
+        11: {'label': 'P3', 'position': (1, 1)},
+        12: {'label': 'P4', 'position': (0, 1)},
     }
 
-    green_thresholds = ([88, 182, 104], [135, 255, 200])
-    # green_thresholds = ([88, 180, 104], [135, 255, 187])
-    purple_thresholds = ([118, 100, 66], [255, 251, 255])  
-    min_distance = 50 
+    # Limiares para detecção das peças verdes e roxas
+    green_thresholds = ([88, 180, 104], [135, 255, 187])
+    purple_thresholds = ([118, 100, 66], [255, 251, 255])
+    min_distance = 50
 
+    # Inicializa os detectores e transformadores de perspectiva
     detector = ArucoDetector(id_map=aruco_id_map)
     transformer = PerspectiveTransformer()
     object_line_detector = ObjectAndLineDetector(green_thresholds, purple_thresholds, min_distance)
 
+    # Carrega o vídeo
     cap = cv2.VideoCapture("2024-09-03 14-31-00.mp4")
 
     if not cap.isOpened():
@@ -239,33 +235,26 @@ def main():
             print("Vídeo finalizado ou erro ao ler o frame.")
             break
 
-        # Saída 1: Exibir o vídeo redimensionado e cortado
+        # saída 01: vídeo-show
         frame_resized = cv2.resize(frame, (0, 0), fx=0.6, fy=0.6)
-        height, width = frame_resized.shape[:2]
-        video_cropped = frame_resized[:, 100:width - 100]  
-        cv2.imshow("video", video_cropped)
+        frame_resized, previous_board = process_frame(
+        frame_resized, detector, transformer, object_line_detector, previous_board, board_accumulator
+        )
+        cv2.imshow("Processed Video", frame_resized)
 
-        # Saída 2: Detecção em tempo real (tabuleiro e peças)
-        if time.time() - last_update_time >= 0:
-            frame_resized, previous_board = process_frame(frame_resized, detector, transformer, object_line_detector, previous_board)
-            last_update_time = time.time()
-
-        # Saída 3: Mostrar a média do tabuleiro no terminal a cada 3 segundos
-        if time.time() - last_board_update >= 1:
-            if board_accumulator:
-                average_board = calculate_average_board(board_accumulator)
-                # rotated_board = np.rot90(average_board, 2)
-                print(average_board)
-                board_accumulator = []  
-            last_board_update = time.time()
-
-        # Acumula o estado do tabuleiro atual
-        update_accumulated_board(detector, transformer, object_line_detector, frame, board_accumulator)
-
+        # #saída 02:  do tabuleiro
+        # frame_board = cv2.resize(frame, (0, 0), fx=0.6, fy=0.6)
+        # if time.time() - last_update_time >= 0:
+        #     frame_board, previous_board = board_frame(frame_board, detector, transformer, object_line_detector, previous_board)
+        #     last_update_time = time.time()
+      
+        #saída 03: print do tabuleiro e jogadas
+        frame_resized, previous_board = process_frame(frame_resized, detector, transformer, object_line_detector, previous_board, board_accumulator)
         # Pressione 'q' para sair
         if cv2.waitKey(1) & 0xFF == ord('q'):
             break
 
+    # Libera os recursos de vídeo
     cap.release()
     cv2.destroyAllWindows()
 
