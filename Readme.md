@@ -5,8 +5,9 @@ REVISADO 28/08/24
 
 ESTRATÉGIA DE CODIFICAÇÃO:
 
-Cirar um script de detecção de jogo de damas com inteligêcia artificial clássica usando OpenCV-Python
+Cirar um script de detecção de jogo de damas com inteligêcia artificial clássica usando OpenCV-Python e Numpy.
 
+    CLASSES E FUNÇÕES:
     1. Achar arucos;
     2. Na área dos arucos achar pontos internos(closets) mais proximos ao centro da imagem;
     3. Associar pontos internos(closest) aos ids dos arucos; 
@@ -22,7 +23,7 @@ Cirar um script de detecção de jogo de damas com inteligêcia artificial clás
     13. Detecta movimentação de jogada
     14. Checa o vencedor do jogo.
 
-    PROGRAMA PRINCIPAL,
+    PROGRAMA PRINCIPAL:
     * Aceita entrada de vídeo
     * Faz resize e cropp
-    * Exibe 3 saídas: 1. Janela com vídeo original; 2.Janela com tabuleiro; 3. Retorno da Matriz numpy no terminal com reconhecimento de jogadas, reconhecimento de peças capturadas e reconhecimento de vencedor.
+    * Exibe 3 saídas: 1. Janela com vídeo original; 2. Janela com tabuleiro; 3. Retorno da Matriz numpy no terminal com reconhecimento de jogadas, reconhecimento de peças capturadas e reconhecimento de vencedor.
