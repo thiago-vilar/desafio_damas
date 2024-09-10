@@ -1,7 +1,6 @@
 import cv2
 import numpy as np
 from cv2 import aruco
-import time
 
 class ArucoDetector:
     def __init__(self, dictionary_type=aruco.DICT_ARUCO_ORIGINAL, id_map=None):
@@ -101,7 +100,7 @@ def draw_lines_and_labels(warped):
     return warped
 
 def detect_board_status(warped, green_centers, purple_centers):
-    board = np.full((8, 8), '⬜', dtype=object)
+    board = np.full((8, 8), '⬛', dtype=object)
     cell_size = 60
     emoji_map = {1: '🟢', 2: '🟣'}
     for i in range (8):
@@ -116,18 +115,18 @@ def detect_board_status(warped, green_centers, purple_centers):
                     if abs(center[0] - cell_x) < cell_size // 2 and abs(center[1] - cell_y) < cell_size // 2:
                         board[i, j] = emoji_map[2]
             else:
-                board[i, j] = '⬛'
+                board[i, j] = '⬜'
     return board
 
 def calculate_average_board(board_accumulator):
-    final_board = np.full((8, 8), '⬜', dtype=object)
+    final_board = np.full((8, 8), '⬛', dtype=object)
     for i in range (8):
         for j in range (8):
             cell_votes = [board[i][j] for board in board_accumulator if board[i][j] in ['🟢', '🟣']]
             if cell_votes:
                 final_board[i, j] = max(set(cell_votes), key=cell_votes.count)
             else:
-                final_board[i, j] = '⬛' if (i + j) % 2 == 1 else '⬜'
+                final_board[i, j] = '⬜' if (i + j) % 2 == 1 else '⬛'
     return final_board
 
 def process_frame(frame, detector, transformer, object_line_detector, previous_board, board_accumulator):
@@ -144,6 +143,8 @@ def process_frame(frame, detector, transformer, object_line_detector, previous_b
             if len(board_accumulator) >= 50:
                 average_board = calculate_average_board(board_accumulator)
                 board_accumulator.clear()
+
+                detect_winner(average_board)
 
                 if previous_board is not None:
                     move_made = detect_move(previous_board, average_board)
@@ -193,15 +194,15 @@ def detect_move(previous_board, current_board):
     # Detectar movimentos e capturas
     for diff in differences:
         i, j, prev, curr = diff
-        if prev in ['🟢', '🟣'] and curr == '⬛':  # Possível movimento ou captura
+        if prev in ['🟢', '🟣'] and curr == '⬜':  # Possível movimento ou captura
             moved = False
             for diff_next in differences:
                 i_next, j_next, prev_next, curr_next = diff_next
-                if curr_next in ['🟢', '🟣'] and prev_next == '⬛' and curr_next == prev:  # Confirmar movimento
+                if curr_next in ['🟢', '🟣'] and prev_next == '⬜' and curr_next == prev:  # Confirma movimento
                     moves.append((curr_next, (i, j), (i_next, j_next)))
                     moved = True
                     break
-            if not moved:  # Se não foi confirmado como movimento, então foi capturada
+            if not moved:  # Se confirmado movimento = capturada
                 captured_pieces.append((prev, (i, j)))
 
     # Remove duplicatas nos movimentos
@@ -226,8 +227,6 @@ def detect_move(previous_board, current_board):
 
     return unique_moves if unique_moves else None
 
-
-
 def detect_winner(board):
     green_count = sum(piece == '🟢' for row in board for piece in row)
     purple_count = sum(piece == '🟣' for row in board for piece in row)
@@ -235,9 +234,8 @@ def detect_winner(board):
         print("Jogador PURPLE venceu!")
     elif purple_count == 0:
         print("Jogador GREEN venceu!")
-    else:
-        print(f"Estado do jogo - Verde: {green_count}, Roxo: {purple_count}")
-
+    # else:
+        # print(f"Estado do jogo - Verde: {green_count}, Roxo: {purple_count}")
 
 def main():
     aruco_id_map = {
@@ -247,9 +245,11 @@ def main():
         12: {'label': 'P4', 'position': (0, 1)},
     }
 
+    # green_thresholds = ([88, 180, 104], [135, 255, 187])
+    # purple_thresholds = ([118, 100, 66], [255, 251, 255])
     green_thresholds = ([88, 180, 104], [135, 255, 187])
     purple_thresholds = ([118, 100, 66], [255, 251, 255])
-    min_distance = 50
+    min_distance = 55
 
 
     detector = ArucoDetector(id_map=aruco_id_map)
@@ -261,7 +261,7 @@ def main():
     if not cap.isOpened():
         print("Erro ao abrir o vídeo.")
         return
-
+     
     previous_board = None  
     board_accumulator = [] 
 
@@ -277,22 +277,14 @@ def main():
         video_cropped = frame_resized[:, 100:width - 100]  
         cv2.imshow("video", video_cropped)
         
-        #PROCESSAMENTO DE FRAME COM IMPRESSÃO DE JOGADA NO TERMINAL
+        #PROCESSAMENTO COM IMPRESSÃO NUMPY NO TERMINAL
         frame_resized, previous_board = process_frame(frame_resized, detector, transformer, object_line_detector, previous_board, board_accumulator)
 
-        #SAÍDA DE TABULEIRO COM DETECÇÕES
+        #SAÍDA DE TABULEIRO COM DETECÇÕES - TELA
         board_frame(frame, detector, transformer, object_line_detector, previous_board)
-    
-        # Pressione 'q' para sair
-        if cv2.waitKey(1) & 0xFF == ord('q'):
-            break
 
     cap.release()
     cv2.destroyAllWindows()
 
-
 if __name__ == "__main__":
     main()
-
-#Identificar uma jogada : Movimentação Peça do jogador'green' move da casa C1 para casa C2 / identificar peças destruidas
-#Identificar vencedor: identificar se todas as peças de uma determinada cor foram extintas(estinguidas)
